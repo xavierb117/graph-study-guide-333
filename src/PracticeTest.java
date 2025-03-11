@@ -447,52 +447,169 @@ public class PracticeTest {
   }
 
   // --- Tests for hasExtendedConnectionAtCompany(Professional person, String companyName) ---
+
+/**
+   * Test that if the professional is null, the method returns false.
+   */
   @Test
-  public void testHasExtendedConnectionAtCompany_NullPerson() {
+  public void testNullProfessional() {
     assertFalse(Practice.hasExtendedConnectionAtCompany(null, "Acme Corp"));
   }
 
+  /**
+   * Test that if the professional themself works for the target company,
+   * the method returns true.
+   */
   @Test
-  public void testHasExtendedConnectionAtCompany_SelfWorks() {
-    // A professional who works for the company should return true.
-    Professional alice = new Professional("Alice", "Acme Corp", 5, new HashSet<>());
-    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Acme Corp"));
+  public void testSelfWorksForCompany() {
+    // Using "Tech Solutions" as the target.
+    Professional alice = new Professional("Alice", "Tech Solutions", 10, new HashSet<>());
+    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Tech Solutions"));
   }
 
+  /**
+   * Test a direct connection:
+   * Alice works at "Global Inc.", and her direct connection Bob works at "Innovative LLC".
+   */
   @Test
-  public void testHasExtendedConnectionAtCompany_DirectConnection() {
-    // Alice does not work for Acme Corp but her direct connection Bob does.
-    Professional bob = new Professional("Bob", "Acme Corp", 10, new HashSet<>());
+  public void testDirectConnection() {
+    Professional bob = new Professional("Bob", "Innovative LLC", 8, new HashSet<>());
     Set<Professional> aliceConnections = new HashSet<>();
     aliceConnections.add(bob);
-    Professional alice = new Professional("Alice", "Other Corp", 5, aliceConnections);
-    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Acme Corp"));
+    Professional alice = new Professional("Alice", "Global Inc.", 5, aliceConnections);
+    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Innovative LLC"));
   }
 
+  /**
+   * Test an indirect connection:
+   * Create a chain: Alice -> Charlie -> Bob,
+   * where Bob works at "Tech Solutions".
+   */
   @Test
-  public void testHasExtendedConnectionAtCompany_IndirectConnection() {
-    // Create a chain: Alice -> Charlie -> Bob,
-    // where Bob works at Acme Corp.
-    Professional bob = new Professional("Bob", "Acme Corp", 8, new HashSet<>());
+  public void testIndirectConnection() {
+    Professional bob = new Professional("Bob", "Tech Solutions", 8, new HashSet<>());
     Set<Professional> charlieConnections = new HashSet<>();
     charlieConnections.add(bob);
-    Professional charlie = new Professional("Charlie", "Other Corp", 6, charlieConnections);
+    Professional charlie = new Professional("Charlie", "Other Corp", 7, charlieConnections);
     
     Set<Professional> aliceConnections = new HashSet<>();
     aliceConnections.add(charlie);
-    Professional alice = new Professional("Alice", "Other Corp", 5, aliceConnections);
-    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Acme Corp"));
+    Professional alice = new Professional("Alice", "Global Inc.", 5, aliceConnections);
+    
+    assertTrue(Practice.hasExtendedConnectionAtCompany(alice, "Tech Solutions"));
   }
 
+  /**
+   * Test a network with a cycle.
+   * Create a cycle: A -> B -> C -> A, where B works at "FutureTech".
+   */
   @Test
-  public void testHasExtendedConnectionAtCompany_NoConnection() {
-    // Create a network where none work at Acme Corp.
-    Professional bob = new Professional("Bob", "Other Corp", 8, new HashSet<>());
-    Professional charlie = new Professional("Charlie", "Other Corp", 6, new HashSet<>());
-    Set<Professional> aliceConnections = new HashSet<>();
-    aliceConnections.add(bob);
-    aliceConnections.add(charlie);
-    Professional alice = new Professional("Alice", "Other Corp", 5, aliceConnections);
-    assertFalse(Practice.hasExtendedConnectionAtCompany(alice, "Acme Corp"));
+  public void testCycleInNetwork() {
+    Professional a = new Professional("A", "Other Corp", 3, new HashSet<>());
+    Professional b = new Professional("B", "FutureTech", 4, new HashSet<>());
+    Professional c = new Professional("C", "Other Corp", 5, new HashSet<>());
+    
+    // Build cycle: A -> B -> C -> A
+    a.getConnections().add(b);
+    b.getConnections().add(c);
+    c.getConnections().add(a);
+    
+    assertTrue(Practice.hasExtendedConnectionAtCompany(a, "FutureTech"));
+  }
+
+  /**
+   * Test a network where no one in the extended network works for the target company.
+   * In this case, none work for "Nonexistent Corp".
+   */
+  @Test
+  public void testNoConnectionFound() {
+    Professional a = new Professional("A", "Other Corp", 3, new HashSet<>());
+    Professional b = new Professional("B", "Global Inc.", 4, new HashSet<>());
+    Professional c = new Professional("C", "Tech Solutions", 5, new HashSet<>());
+    
+    a.getConnections().add(b);
+    b.getConnections().add(c);
+    
+    assertFalse(Practice.hasExtendedConnectionAtCompany(a, "Nonexistent Corp"));
+  }
+
+  /**
+   * Test a network with multiple branches.
+   * Create a network:
+   *   A -> {B, C}
+   *   B -> {D, E}  where D works at "Global Inc." and E works at "Other Corp".
+   *   C -> {F}     where F does not work for the target.
+   * Target is "Global Inc.".
+   */
+  @Test
+  public void testMultiplePaths() {
+    Professional d = new Professional("D", "Global Inc.", 6, new HashSet<>());
+    Professional e = new Professional("E", "Other Corp", 4, new HashSet<>());
+    Professional b = new Professional("B", "Other Corp", 5, new HashSet<>(Arrays.asList(d, e)));
+    Professional f = new Professional("F", "Other Corp", 4, new HashSet<>());
+    Professional c = new Professional("C", "Other Corp", 3, new HashSet<>(Arrays.asList(f)));
+    
+    Set<Professional> aConnections = new HashSet<>(Arrays.asList(b, c));
+    Professional a = new Professional("A", "Other Corp", 7, aConnections);
+    
+    assertTrue(Practice.hasExtendedConnectionAtCompany(a, "Global Inc."));
+  }
+
+  /**
+   * Test a deep network where the target company is never found.
+   * Create a chain: A -> B -> C -> D -> E, and none work for "UltraCorp".
+   */
+  @Test
+  public void testDeepNetworkWithoutTarget() {
+    Professional e = new Professional("E", "Other Corp", 4, new HashSet<>());
+    Professional d = new Professional("D", "Other Corp", 5, new HashSet<>(Arrays.asList(e)));
+    Professional c = new Professional("C", "Other Corp", 6, new HashSet<>(Arrays.asList(d)));
+    Professional b = new Professional("B", "Other Corp", 3, new HashSet<>(Arrays.asList(c)));
+    Professional a = new Professional("A", "Other Corp", 2, new HashSet<>(Arrays.asList(b)));
+    
+    assertFalse(Practice.hasExtendedConnectionAtCompany(a, "UltraCorp"));
+  }
+
+  /**
+   * Test a complex network with multiple cycles and branches.
+   * Network structure:
+   *   A works at "Other Corp".
+   *   A -> {B, C}
+   *   B -> {D, E}
+   *   C -> {F, G}
+   *   D -> {A} (cycle)
+   *   E -> {} and E works at "Innovative LLC"
+   *   F -> {F} (self-loop)
+   *   G -> {H}
+   *   H -> {B} (cycle connecting back to B)
+   * The target is "Innovative LLC".
+   */
+  @Test
+  public void testNetworkWithMultipleCycles() {
+    Professional e = new Professional("E", "Innovative LLC", 5, new HashSet<>());
+    Professional d = new Professional("D", "Other Corp", 4, new HashSet<>());
+    Professional b = new Professional("B", "Other Corp", 3, new HashSet<>());
+    Professional f = new Professional("F", "Other Corp", 4, new HashSet<>());
+    Professional g = new Professional("G", "Other Corp", 4, new HashSet<>());
+    Professional h = new Professional("H", "Other Corp", 3, new HashSet<>());
+    Professional c = new Professional("C", "Other Corp", 6, new HashSet<>());
+    Professional a = new Professional("A", "Other Corp", 7, new HashSet<>());
+
+    // Build connections manually:
+    a.getConnections().add(b);
+    a.getConnections().add(c);
+    
+    b.getConnections().add(d);
+    b.getConnections().add(e);
+    
+    c.getConnections().add(f);
+    c.getConnections().add(g);
+    
+    d.getConnections().add(a); // cycle: D -> A
+    g.getConnections().add(h);
+    h.getConnections().add(b); // cycle: H -> B
+    f.getConnections().add(f); // self-loop on F
+    
+    assertTrue(Practice.hasExtendedConnectionAtCompany(a, "Innovative LLC"));
   }
 }
