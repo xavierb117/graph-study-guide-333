@@ -229,70 +229,221 @@ public class PracticeTest {
   }
 
   // --- Tests for positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) ---
+  /**
+   * Test that a vertex is always reachable from itself if it is positive.
+   */
   @Test
-  public void testPositivePathExists_ValidPath() {
-    // Simple map graph:
-    // 3 -> {4}
-    // 4 -> {5}
-    // 5 -> {}
+  public void testSelfPath() {
     Map<Integer, Set<Integer>> graph = new HashMap<>();
-    graph.put(3, new LinkedHashSet<>(Arrays.asList(4)));
-    graph.put(4, new LinkedHashSet<>(Arrays.asList(5)));
-    graph.put(5, new LinkedHashSet<>());
-    
-    List<Integer> expected = Arrays.asList(3, 4, 5);
-    assertEquals(expected, Practice.positivePathExists(graph, 3, 5));
+    // Graph contains a single positive vertex 5 with no neighbors.
+    graph.put(5, new HashSet<>());
+    assertTrue(Practice.positivePathExists(graph, 5, 5));
   }
 
+  /**
+   * Test a small graph with a valid positive path:
+   *  3 -> {4}
+   *  4 -> {5}
+   *  5 -> {}
+   * Expected: There is a valid positive path from 3 to 5.
+   */
   @Test
-  public void testPositivePathExists_NoPath() {
-    // Graph with no valid path from 3 to 5.
+  public void testValidPositivePath_SmallGraph() {
     Map<Integer, Set<Integer>> graph = new HashMap<>();
-    graph.put(3, new LinkedHashSet<>(Arrays.asList(4)));
-    graph.put(4, new LinkedHashSet<>());
-    graph.put(5, new LinkedHashSet<>());
-    
-    List<Integer> result = Practice.positivePathExists(graph, 3, 5);
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    graph.put(3, new HashSet<>(Arrays.asList(4)));
+    graph.put(4, new HashSet<>(Arrays.asList(5)));
+    graph.put(5, new HashSet<>());
+    assertTrue(Practice.positivePathExists(graph, 3, 5));
   }
 
+  /**
+   * Test that if the ending vertex is missing from the graph, the result is false.
+   */
   @Test
-  public void testPositivePathExists_InvalidInput() {
-    // Graph as before; invalid when starting or ending is not positive or not present.
+  public void testMissingEndingVertex() {
     Map<Integer, Set<Integer>> graph = new HashMap<>();
-    graph.put(3, new LinkedHashSet<>(Arrays.asList(4)));
-    graph.put(4, new LinkedHashSet<>(Arrays.asList(5)));
-    graph.put(5, new LinkedHashSet<>());
-    
-    List<Integer> result1 = Practice.positivePathExists(graph, -3, 5);
-    assertNotNull(result1);
-    assertTrue(result1.isEmpty());
-    
-    List<Integer> result2 = Practice.positivePathExists(graph, 3, 10);
-    assertNotNull(result2);
-    assertTrue(result2.isEmpty());
+    graph.put(3, new HashSet<>(Arrays.asList(4)));
+    graph.put(4, new HashSet<>(Arrays.asList(5)));
+    graph.put(5, new HashSet<>());
+    // Ending vertex 10 is not present.
+    assertFalse(Practice.positivePathExists(graph, 3, 10));
   }
 
+  /**
+   * Test a graph where the only available path includes a negative vertex.
+   * Graph:
+   *   3 -> {-4}
+   *   -4 -> {5}
+   *   5 -> {}
+   * Even though there is a path from 3 to 5, it includes -4 (non-positive),
+   * so the method should return false.
+   */
   @Test
-  public void testPositivePathExists_ComplexGraph() {
-    // Create a complex map graph using a structure similar to the complex Vertex graph.
+  public void testPathIncludesNegative() {
     Map<Integer, Set<Integer>> graph = new HashMap<>();
-    graph.put(3, new LinkedHashSet<>(Arrays.asList(7, 34)));
-    graph.put(7, new LinkedHashSet<>(Arrays.asList(12, 45, 34, 56)));
-    graph.put(12, new LinkedHashSet<>(Arrays.asList(7, 56, 78)));
-    graph.put(34, new LinkedHashSet<>(Arrays.asList(34, 91)));
-    graph.put(56, new LinkedHashSet<>(Arrays.asList(78)));
-    graph.put(78, new LinkedHashSet<>(Arrays.asList(91)));
-    graph.put(91, new LinkedHashSet<>(Arrays.asList(56)));
-    graph.put(45, new LinkedHashSet<>(Arrays.asList(23)));
-    graph.put(23, new LinkedHashSet<>());
-    graph.put(67, new LinkedHashSet<>(Arrays.asList(91)));
+    graph.put(3, new HashSet<>(Arrays.asList(-4)));
+    graph.put(-4, new HashSet<>(Arrays.asList(5)));
+    graph.put(5, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, 3, 5));
+  }
 
-    // Assuming insertion order, a valid DFS path from 3 to 91 might be:
-    // 3 -> 7 -> 12 -> 56 -> 78 -> 91
-    List<Integer> expected = Arrays.asList(3, 7, 12, 56, 78, 91);
-    assertEquals(expected, Practice.positivePathExists(graph, 3, 91));
+  /**
+   * Test a graph with a cycle where all vertices are positive.
+   * Graph:
+   *   1 -> {2}
+   *   2 -> {3}
+   *   3 -> {1, 4}
+   *   4 -> {}
+   * There is a valid cycle and a positive path from 1 to 4.
+   */
+  @Test
+  public void testCycleValid() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(1, new HashSet<>(Arrays.asList(2)));
+    graph.put(2, new HashSet<>(Arrays.asList(3)));
+    graph.put(3, new HashSet<>(Arrays.asList(1, 4)));
+    graph.put(4, new HashSet<>());
+    assertTrue(Practice.positivePathExists(graph, 1, 4));
+  }
+
+  /**
+   * Test a graph with a cycle that forces the use of a negative vertex.
+   * Graph:
+   *   1 -> {-2}
+   *   -2 -> {3}
+   *   3 -> {1, 4}
+   *   4 -> {}
+   * The only available path from 1 to 4 includes -2, so the result should be false.
+   */
+  @Test
+  public void testCycleInvalidDueToNegative() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(1, new HashSet<>(Arrays.asList(-2)));
+    graph.put(-2, new HashSet<>(Arrays.asList(3)));
+    graph.put(3, new HashSet<>(Arrays.asList(1, 4)));
+    graph.put(4, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, 1, 4));
+  }
+
+  /**
+   * Test a graph with multiple paths from the starting vertex to the ending vertex.
+   * One path is valid while another includes a negative vertex.
+   * Graph:
+   *   3 -> {4, -2}
+   *   4 -> {9}
+   *   -2 -> {9}
+   *   9 -> {}
+   * Although the path 3->(-2)->9 is invalid, 3->4->9 is valid.
+   */
+  @Test
+  public void testMultiplePathsOneValid() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(3, new HashSet<>(Arrays.asList(4, -2)));
+    graph.put(4, new HashSet<>(Arrays.asList(9)));
+    graph.put(-2, new HashSet<>(Arrays.asList(9)));
+    graph.put(9, new HashSet<>());
+    assertTrue(Practice.positivePathExists(graph, 3, 9));
+  }
+
+  /**
+   * Test that if the starting vertex is not positive, the method returns false.
+   * Graph:
+   *   -3 -> {4}
+   *   4 -> {5}
+   *   5 -> {}
+   */
+  @Test
+  public void testStartingNotPositive() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(-3, new HashSet<>(Arrays.asList(4)));
+    graph.put(4, new HashSet<>(Arrays.asList(5)));
+    graph.put(5, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, -3, 5));
+  }
+
+  /**
+   * Test that if the ending vertex is not positive, the method returns false.
+   * Graph:
+   *   3 -> {4}
+   *   4 -> {-5}
+   *   -5 -> {}
+   */
+  @Test
+  public void testEndingNotPositive() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(3, new HashSet<>(Arrays.asList(4)));
+    graph.put(4, new HashSet<>(Arrays.asList(-5)));
+    graph.put(-5, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, 3, -5));
+  }
+
+  /**
+   * Test a disconnected graph where the starting and ending vertices belong to different components.
+   * Graph:
+   *   Component 1: 1 -> {2}, 2 -> {}
+   *   Component 2: 3 -> {4}, 4 -> {}
+   * There is no path from 1 to 4.
+   */
+  @Test
+  public void testDisconnectedGraph() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(1, new HashSet<>(Arrays.asList(2)));
+    graph.put(2, new HashSet<>());
+    graph.put(3, new HashSet<>(Arrays.asList(4)));
+    graph.put(4, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, 1, 4));
+  }
+
+  /**
+   * Test a complex graph with cycles and multiple valid paths.
+   * Graph structure:
+   *   10 -> {20, 30, 40}
+   *   20 -> {50, 60}
+   *   30 -> {20, 70}
+   *   40 -> {80}
+   *   50 -> {90}
+   *   60 -> {30, 90}  // cycle: 30 -> 20 -> 60 -> 30
+   *   70 -> {}
+   *   80 -> {90}
+   *   90 -> {}
+   * A valid positive path exists from 10 to 90 (e.g., 10 -> 20 -> 50 -> 90).
+   */
+  @Test
+  public void testComplexGraphValid() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(10, new HashSet<>(Arrays.asList(20, 30, 40)));
+    graph.put(20, new HashSet<>(Arrays.asList(50, 60)));
+    graph.put(30, new HashSet<>(Arrays.asList(20, 70)));
+    graph.put(40, new HashSet<>(Arrays.asList(80)));
+    graph.put(50, new HashSet<>(Arrays.asList(90)));
+    graph.put(60, new HashSet<>(Arrays.asList(30, 90)));
+    graph.put(70, new HashSet<>());
+    graph.put(80, new HashSet<>(Arrays.asList(90)));
+    graph.put(90, new HashSet<>());
+    assertTrue(Practice.positivePathExists(graph, 10, 90));
+  }
+
+  /**
+   * Test a complex graph where every path from the starting vertex to the ending vertex includes a negative vertex.
+   * Modified graph structure:
+   *   10 -> {20, 30}
+   *   20 -> {-50}     // now, 20 only leads to -50
+   *   30 -> {20, 70}
+   *   -50 -> {90}
+   *   70 -> {}
+   *   90 -> {}
+   * Every path from 10 to 90 must pass through 20 then -50.
+   */
+  @Test
+  public void testComplexGraphInvalid() {
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(10, new HashSet<>(Arrays.asList(20, 30)));
+    graph.put(20, new HashSet<>(Arrays.asList(-50)));
+    graph.put(30, new HashSet<>(Arrays.asList(20, 70)));
+    graph.put(-50, new HashSet<>(Arrays.asList(90)));
+    graph.put(70, new HashSet<>());
+    graph.put(90, new HashSet<>());
+    assertFalse(Practice.positivePathExists(graph, 10, 90));
   }
 
   // --- Tests for hasExtendedConnectionAtCompany(Professional person, String companyName) ---

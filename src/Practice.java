@@ -84,19 +84,19 @@ public class Practice {
   }
 
   /**
-   * Returns a list of integers representing a path of only positive (greater than 0) numbers from the starting
-   * vertex to the ending vertex in the given graph. The graph is represented as a map where each key is a vertex
-   * and each value is a set of directly reachable neighbor vertices. A vertex is always considered reachable from itself.
+   * Returns whether there exists a path from the starting to ending vertex that includes only positive values.
+   * 
+   * The graph is represented as a map where each key is a vertex and each value is a set of directly reachable neighbor vertices. A vertex is always considered reachable from itself.
    * If the starting or ending vertex is not positive or is not present in the keys of the map, or if no valid path exists,
-   * returns an empty list.
+   * returns false.
    *
-   * @param graph a map representing the graph of positive integers
-   * @param starting the starting vertex value (must be positive and a key in the graph)
-   * @param ending the ending vertex value (must be positive and a key in the graph)
-   * @return a list representing a valid positive path from starting to ending, or an empty list if no path exists
+   * @param graph a map representing the graph
+   * @param starting the starting vertex value
+   * @param ending the ending vertex value
+   * @return whether there exists a valid positive path from starting to ending
    */
-  public static List<Integer> positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) {
-    return null;
+  public static boolean positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) {
+    return false;
   }
 
   /**
