@@ -4,43 +4,111 @@ import java.util.Set;
 
 public class Practice {
 
-  // return a count of how many vertices with odd values can be reached 
-  // from a given starting vertex (include the start in the count iff it is odd).
-  // Return 0 if starting vertex is null 
+  /**
+   * Returns the count of vertices with odd values that can be reached from the given starting vertex.
+   * The starting vertex is included in the count if its value is odd.
+   * If the starting vertex is null, returns 0.
+   *
+   * Example:
+   * Consider a graph where:
+   *   5 --> 4
+   *   |     |
+   *   v     v
+   *   8 --> 7 < -- 1
+   *   |
+   *   v
+   *   9
+   * 
+   * Starting from 5, the odd nodes that can be reached are 5, 7, and 9.
+   * Thus, given 5, the number of reachable odd nodes is 3.
+   * @param starting the starting vertex (may be null)
+   * @return the number of vertices with odd values reachable from the starting vertex
+   */
   public static int oddVertices(Vertex<Integer> starting) {
     return 0;
   }
 
-  // return a sorted list of all values reachable from the starting vertex
-  // (including the starting vertex itself)
-  // If there is duplicate vertex data, copies should be present
-  // in the output. For example
-  //    5 -- > 8
-  //    |      |
-  //    v      v
-  //    8 -- > 2
-  // Should return the below when starting from 5:
-  // [2, 5, 8, 8]
-  // if the starting vertex is null, return an empty List
+  /**
+   * Returns a *sorted* list of all values reachable from the starting vertex (including the starting vertex itself).
+   * If duplicate vertex data exists, duplicates should appear in the output.
+   * If the starting vertex is null, returns an empty list.
+   * They should be sorted in ascending numerical order.
+   *
+   * Example:
+   * Consider a graph where:
+   *   5 --> 8
+   *   |     |
+   *   v     v
+   *   8 --> 2 <-- 4
+   * When starting from the vertex with value 5, the output should be:
+   *   [2, 5, 8, 8]
+   *
+   * @param starting the starting vertex (may be null)
+   * @return a sorted list of all reachable vertex values by 
+   */
   public static List<Integer> sortedReachable(Vertex<Integer> starting) {
+    // Unimplemented: perform a depth-first search and sort the collected values.
     return null;
   }
 
-  // return a sorted list of all values reachable from the starting vertex
-  // (including the starting vertex itself)
-  // You can assume there are no duplicate vertices.
-  // For example:
-  //  TODO: Make a map and expected output
-  // if the starting vertex is not a key in the map, return an empty List
+  /**
+   * Returns a sorted list of all values reachable from the given starting vertex in the provided graph.
+   * The graph is represented as a map where each key is a vertex and its corresponding value is a set of neighbors.
+   * It is assumed that there are no duplicate vertices.
+   * If the starting vertex is not present as a key in the map, returns an empty list.
+   *
+   * @param graph a map representing the graph
+   * @param starting the starting vertex value
+   * @return a sorted list of all reachable vertex values
+   */
   public static List<Integer> sortedReachable(Map<Integer, Set<Integer>> graph, int starting) {
     return null;
   }
 
-  // Return true iff it is possible both to reach v2 starting from v1
-  // AND to reach v1 starting from v2. Return false if either or both
-  // cannot be done or v1 or v2 is null
-  // Consider it always possible for a vertex to reach itself.
+  /**
+   * Returns true if and only if it is possible both to reach v2 from v1 and to reach v1 from v2.
+   * A vertex is always considered reachable from itself.
+   * If either v1 or v2 is null or if one cannot reach the other, returns false.
+   *
+   * Example:
+   * If v1 and v2 are connected in a cycle, the method should return true.
+   * If v1 equals v2, the method should also return true.
+   *
+   * @param <T> the type of data stored in the vertex
+   * @param v1 the starting vertex
+   * @param v2 the target vertex
+   * @return true if there is a two-way connection between v1 and v2, false otherwise
+   */
   public static <T> boolean twoWay(Vertex<T> v1, Vertex<T> v2) {
+    return false;
+  }
+
+  /**
+   * Returns a list of integers representing a path of only positive (greater than 0) numbers from the starting
+   * vertex to the ending vertex in the given graph. The graph is represented as a map where each key is a vertex
+   * and each value is a set of directly reachable neighbor vertices. A vertex is always considered reachable from itself.
+   * If the starting or ending vertex is not positive or is not present in the keys of the map, or if no valid path exists,
+   * returns an empty list.
+   *
+   * @param graph a map representing the graph of positive integers
+   * @param starting the starting vertex value (must be positive and a key in the graph)
+   * @param ending the ending vertex value (must be positive and a key in the graph)
+   * @return a list representing a valid positive path from starting to ending, or an empty list if no path exists
+   */
+  public static List<Integer> positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) {
+    return null;
+  }
+
+  /**
+   * Returns true if a professional has anyone in their extended network (reachable through any number of links)
+   * that works for the given company. The search includes the professional themself.
+   * If the professional is null, returns false.
+   *
+   * @param person the professional to start the search from (may be null)
+   * @param companyName the name of the company to check for employment
+   * @return true if a person in the extended network works at the specified company, false otherwise
+   */
+  public static boolean hasExtendedConnectionAtCompany(Professional person, String companyName) {
     return false;
   }
 }
