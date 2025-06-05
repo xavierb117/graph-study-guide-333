@@ -612,4 +612,185 @@ public class PracticeTest {
     
     assertTrue(Practice.hasExtendedConnectionAtCompany(a, "Innovative LLC"));
   }
+
+  // helper method for testing nextMoves
+   private static Set<String> toSet(List<int[]> moves) {
+        Set<String> set = new HashSet<>();
+        for (int[] move : moves) {
+            set.add(move[0] + "," + move[1]);
+        }
+        return set;
+    }
+
+    @Test
+    public void testNextMoves_exampleFromJavadoc() {
+        char[][] board = {
+            {' ', ' ', 'X'},
+            {'X', ' ', ' '},
+            {' ', ' ', ' '}
+        };
+        int[] current = {1, 2};
+        int[][] directions = {
+            {0, 1},
+            {-1, 0},
+            {1, 0},
+            {1, -1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Arrays.asList("2,2", "2,1"));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_oneByOneBoard() {
+        char[][] board = {
+            {' '}
+        };
+        int[] current = {0, 0};
+        int[][] directions = {
+            {0, 1},
+            {1, 0},
+            {-1, 0},
+            {0, -1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = Collections.emptySet();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_moreRowsThanCols_bottomRight() {
+        char[][] board = {
+            {' ', ' '},
+            {' ', ' '},
+            {' ', ' '},
+            {' ', ' '}
+        };
+        int[] current = {3, 1};
+        int[][] directions = {
+            {0, 1},
+            {1, 0},
+            {-1, 0},
+            {0, -1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Arrays.asList("2,1", "3,0"));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_moreColsThanRows_bottomRight() {
+        char[][] board = {
+            {' ', ' ', ' ', ' '},
+            {' ', ' ', ' ', ' '}
+        };
+        int[] current = {1, 3};
+        int[][] directions = {
+            {0, 1},
+            {1, 0},
+            {-1, 0},
+            {0, -1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Arrays.asList("0,3", "1,2"));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_surroundedByXs() {
+        char[][] board = {
+            {'X', 'X', 'X'},
+            {'X', ' ', 'X'},
+            {'X', 'X', 'X'}
+        };
+        int[] current = {1, 1};
+        int[][] directions = {
+            {-1, -1}, {-1, 0}, {-1, 1},
+            {0, -1},           {0, 1},
+            {1, -1},  {1, 0},  {1, 1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = Collections.emptySet();
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_allDirectionsAvailable() {
+        char[][] board = {
+            {' ', ' ', ' '},
+            {' ', ' ', ' '},
+            {' ', ' ', ' '}
+        };
+        int[] current = {1, 1};
+        int[][] directions = {
+            {-1, -1}, {-1, 0}, {-1, 1},
+            {0, -1},           {0, 1},
+            {1, -1},  {1, 0},  {1, 1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Arrays.asList(
+            "0,0", "0,1", "0,2",
+            "1,0",       "1,2",
+            "2,0", "2,1", "2,2"
+        ));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_topLeftCorner() {
+        char[][] board = {
+            {' ', ' ', ' '},
+            {' ', ' ', ' '},
+            {' ', ' ', ' '}
+        };
+        int[] current = {0, 0};
+        int[][] directions = {
+            {0, 1},
+            {1, 0},
+            {1, 1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Arrays.asList("0,1", "1,0", "1,1"));
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testNextMoves_singleDirection() {
+        char[][] board = {
+            {' ', ' ', ' '},
+            {' ', ' ', ' '},
+            {' ', ' ', ' '}
+        };
+        int[] current = {1, 1};
+        int[][] directions = {
+            {-1, -1}
+        };
+
+        List<int[]> result = Practice.nextMoves(board, current, directions);
+        Set<String> actual = toSet(result);
+        Set<String> expected = new HashSet<>(Collections.singletonList("0,0"));
+
+        assertEquals(expected, actual);
+    }
 }
