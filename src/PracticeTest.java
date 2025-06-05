@@ -43,7 +43,7 @@ public class PracticeTest {
     v3.neighbors  = new ArrayList<>(List.of(v7, v34));
     v7.neighbors  = new ArrayList<>(List.of(v12, v45, v34, v56));
     v12.neighbors = new ArrayList<>(List.of(v7, v56, v78));
-    v34.neighbors = new ArrayList<>(List.of(v34, v91)); 
+    v34.neighbors = new ArrayList<>(List.of(v34, v91));
     v56.neighbors = new ArrayList<>(List.of(v78));
     v78.neighbors = new ArrayList<>(List.of(v91));
     v91.neighbors = new ArrayList<>(List.of(v56));
@@ -109,7 +109,60 @@ public class PracticeTest {
     assertEquals(5, Practice.oddVertices(v3));
   }
 
+  // --- Additional tests for oddVertices ---
+
+  @Test
+  public void testOddVertices_SingleNodeOdd() {
+    // Single vertex with odd value; should count as 1.
+    Vertex<Integer> v = new Vertex<>(11);
+    assertEquals(1, Practice.oddVertices(v));
+  }
+
+  @Test
+  public void testOddVertices_SingleNodeEven() {
+    // Single vertex with even value; should count as 0.
+    Vertex<Integer> v = new Vertex<>(10);
+    assertEquals(0, Practice.oddVertices(v));
+  }
+
+  @Test
+  public void testOddVertices_CycleAllOdd() {
+    // Create a cycle of three odd-valued vertices.
+    Vertex<Integer> v1 = new Vertex<>(1);
+    Vertex<Integer> v3 = new Vertex<>(3);
+    Vertex<Integer> v5 = new Vertex<>(5);
+    v1.neighbors.add(v3);
+    v3.neighbors.add(v5);
+    v5.neighbors.add(v1);
+    // All three are odd, should count = 3.
+    assertEquals(3, Practice.oddVertices(v1));
+  }
+
+  @Test
+  public void testOddVertices_CycleNoneOdd() {
+    // Create a cycle of even-valued vertices.
+    Vertex<Integer> v2 = new Vertex<>(2);
+    Vertex<Integer> v4 = new Vertex<>(4);
+    v2.neighbors.add(v4);
+    v4.neighbors.add(v2);
+    // Neither is odd, should count = 0.
+    assertEquals(0, Practice.oddVertices(v2));
+  }
+
+  @Test
+  public void testOddVertices_DisconnectedNodeNotVisited() {
+    // Graph with two components; only one component reachable should be counted.
+    Vertex<Integer> v1 = new Vertex<>(1);
+    Vertex<Integer> v2 = new Vertex<>(2);
+    Vertex<Integer> v3 = new Vertex<>(3);
+    // v1 -> v2; v3 is isolated.
+    v1.neighbors.add(v2);
+    // v3 not attached.
+    assertEquals(1, Practice.oddVertices(v1)); // only v1 is odd in reachable component.
+  }
+
   // --- Tests for sortedReachable(Vertex<Integer> starting) ---
+
   @Test
   public void testSortedReachable_NullInput() {
     List<Integer> result = Practice.sortedReachable(null);
@@ -152,7 +205,45 @@ public class PracticeTest {
     assertEquals(expected, Practice.sortedReachable(v3));
   }
 
+  // --- Additional tests for sortedReachable(Vertex<Integer>) ---
+
+  @Test
+  public void testSortedReachable_SingleNode() {
+    // Single vertex; should return list with that one value.
+    Vertex<Integer> v = new Vertex<>(42);
+    List<Integer> result = Practice.sortedReachable(v);
+    assertEquals(Collections.singletonList(42), result);
+  }
+
+  @Test
+  public void testSortedReachable_CycleWithDuplicates() {
+    // Create a cycle where two nodes have the same value.
+    Vertex<Integer> v1 = new Vertex<>(2);
+    Vertex<Integer> v2 = new Vertex<>(2);
+    Vertex<Integer> v3 = new Vertex<>(3);
+    v1.neighbors.add(v2);
+    v2.neighbors.add(v3);
+    v3.neighbors.add(v1);
+    // Values reachable: 2, 2, 3. Sorted: [2, 2, 3]
+    List<Integer> expected = Arrays.asList(2, 2, 3);
+    assertEquals(expected, Practice.sortedReachable(v1));
+  }
+
+  @Test
+  public void testSortedReachable_DisconnectedSubgraphIgnored() {
+    // v1 -> v2; v3 is disconnected.
+    Vertex<Integer> v1 = new Vertex<>(5);
+    Vertex<Integer> v2 = new Vertex<>(1);
+    Vertex<Integer> v3 = new Vertex<>(7);
+    v1.neighbors.add(v2);
+    // v3 is not connected.
+    List<Integer> result = Practice.sortedReachable(v1);
+    // Only [1, 5] should appear, sorted.
+    assertEquals(Arrays.asList(1, 5), result);
+  }
+
   // --- Tests for sortedReachable(Map<Integer, Set<Integer>> graph, int starting) ---
+
   @Test
   public void testSortedReachable_MapGraph_StartingPresent() {
     // Simple map graph:
@@ -184,7 +275,42 @@ public class PracticeTest {
     assertTrue(result.isEmpty());
   }
 
+  // --- Additional tests for sortedReachable(Map<Integer, Set<Integer>>, int) ---
+
+  @Test
+  public void testSortedReachable_MapGraph_SingleNode() {
+    // Graph with a single node pointing to itself.
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(10, new HashSet<>(List.of(10)));
+    // Reachable from 10: {10}, sorted -> [10]
+    assertEquals(Collections.singletonList(10), Practice.sortedReachable(graph, 10));
+  }
+
+  @Test
+  public void testSortedReachable_MapGraph_Cycle() {
+    // Graph with a cycle: 1 -> 2, 2 -> 3, 3 -> 1.
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(1, new HashSet<>(List.of(2)));
+    graph.put(2, new HashSet<>(List.of(3)));
+    graph.put(3, new HashSet<>(List.of(1)));
+    List<Integer> result = Practice.sortedReachable(graph, 1);
+    // Reachable: {1,2,3}, sorted -> [1,2,3]
+    assertEquals(Arrays.asList(1, 2, 3), result);
+  }
+
+  @Test
+  public void testSortedReachable_MapGraph_DisconnectedIgnored() {
+    // Graph: 1->2, 2->{}, 3->4, 4->{}; starting at 1 should ignore 3 and 4.
+    Map<Integer, Set<Integer>> graph = new HashMap<>();
+    graph.put(1, new HashSet<>(List.of(2)));
+    graph.put(2, new HashSet<>());
+    graph.put(3, new HashSet<>(List.of(4)));
+    graph.put(4, new HashSet<>());
+    assertEquals(Arrays.asList(1, 2), Practice.sortedReachable(graph, 1));
+  }
+
   // --- Tests for twoWay(Vertex<T> v1, Vertex<T> v2) ---
+
   @Test
   public void testTwoWay_BothNull() {
     assertFalse(Practice.twoWay(null, null));
@@ -228,7 +354,38 @@ public class PracticeTest {
     assertTrue(Practice.twoWay(v1, v3));
   }
 
+  // --- Additional tests for twoWay ---
+
+  @Test
+  public void testTwoWay_DisconnectedVertices() {
+    // Two vertices with no path between them.
+    Vertex<Integer> v1 = new Vertex<>(1);
+    Vertex<Integer> v2 = new Vertex<>(2);
+    // No neighbors added.
+    assertFalse(Practice.twoWay(v1, v2));
+  }
+
+  @Test
+  public void testTwoWay_SelfLoop() {
+    // Vertex with a self-loop; should be reachable both ways trivially.
+    Vertex<Integer> v = new Vertex<>(5);
+    v.neighbors.add(v);
+    assertTrue(Practice.twoWay(v, v));
+  }
+
+  @Test
+  public void testTwoWay_MultiNodeNoBackPath() {
+    // v1 -> v2 -> v3, but no path from v3 back to v1 or v2.
+    Vertex<Integer> v1 = new Vertex<>(1);
+    Vertex<Integer> v2 = new Vertex<>(2);
+    Vertex<Integer> v3 = new Vertex<>(3);
+    v1.neighbors.add(v2);
+    v2.neighbors.add(v3);
+    assertFalse(Practice.twoWay(v1, v3));
+  }
+
   // --- Tests for positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) ---
+
   /**
    * Test that a vertex is always reachable from itself if it is positive.
    */
@@ -448,7 +605,7 @@ public class PracticeTest {
 
   // --- Tests for hasExtendedConnectionAtCompany(Professional person, String companyName) ---
 
-/**
+  /**
    * Test that if the professional is null, the method returns false.
    */
   @Test
@@ -614,183 +771,230 @@ public class PracticeTest {
   }
 
   // helper method for testing nextMoves
-   private static Set<String> toSet(List<int[]> moves) {
-        Set<String> set = new HashSet<>();
-        for (int[] move : moves) {
-            set.add(move[0] + "," + move[1]);
-        }
-        return set;
+  private static Set<String> toSet(List<int[]> moves) {
+    Set<String> set = new HashSet<>();
+    for (int[] move : moves) {
+      set.add(move[0] + "," + move[1]);
     }
+    return set;
+  }
 
-    @Test
-    public void testNextMoves_exampleFromJavadoc() {
-        char[][] board = {
-            {' ', ' ', 'X'},
-            {'X', ' ', ' '},
-            {' ', ' ', ' '}
-        };
-        int[] current = {1, 2};
-        int[][] directions = {
-            {0, 1},
-            {-1, 0},
-            {1, 0},
-            {1, -1}
-        };
+  @Test
+  public void testNextMoves_exampleFromJavadoc() {
+    char[][] board = {
+      {' ', ' ', 'X'},
+      {'X', ' ', ' '},
+      {' ', ' ', ' '}
+    };
+    int[] current = {1, 2};
+    int[][] directions = {
+      {0, 1},
+      {-1, 0},
+      {1, 0},
+      {1, -1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Arrays.asList("2,2", "2,1"));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Arrays.asList("2,2", "2,1"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_oneByOneBoard() {
-        char[][] board = {
-            {' '}
-        };
-        int[] current = {0, 0};
-        int[][] directions = {
-            {0, 1},
-            {1, 0},
-            {-1, 0},
-            {0, -1}
-        };
+  @Test
+  public void testNextMoves_oneByOneBoard() {
+    char[][] board = {
+      {' '}
+    };
+    int[] current = {0, 0};
+    int[][] directions = {
+      {0, 1},
+      {1, 0},
+      {-1, 0},
+      {0, -1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = Collections.emptySet();
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = Collections.emptySet();
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_moreRowsThanCols_bottomRight() {
-        char[][] board = {
-            {' ', ' '},
-            {' ', ' '},
-            {' ', ' '},
-            {' ', ' '}
-        };
-        int[] current = {3, 1};
-        int[][] directions = {
-            {0, 1},
-            {1, 0},
-            {-1, 0},
-            {0, -1}
-        };
+  @Test
+  public void testNextMoves_moreRowsThanCols_bottomRight() {
+    char[][] board = {
+      {' ', ' '},
+      {' ', ' '},
+      {' ', ' '},
+      {' ', ' '}
+    };
+    int[] current = {3, 1};
+    int[][] directions = {
+      {0, 1},
+      {1, 0},
+      {-1, 0},
+      {0, -1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Arrays.asList("2,1", "3,0"));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Arrays.asList("2,1", "3,0"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_moreColsThanRows_bottomRight() {
-        char[][] board = {
-            {' ', ' ', ' ', ' '},
-            {' ', ' ', ' ', ' '}
-        };
-        int[] current = {1, 3};
-        int[][] directions = {
-            {0, 1},
-            {1, 0},
-            {-1, 0},
-            {0, -1}
-        };
+  @Test
+  public void testNextMoves_moreColsThanRows_bottomRight() {
+    char[][] board = {
+      {' ', ' ', ' ', ' '},
+      {' ', ' ', ' ', ' '}
+    };
+    int[] current = {1, 3};
+    int[][] directions = {
+      {0, 1},
+      {1, 0},
+      {-1, 0},
+      {0, -1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Arrays.asList("0,3", "1,2"));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Arrays.asList("0,3", "1,2"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_surroundedByXs() {
-        char[][] board = {
-            {'X', 'X', 'X'},
-            {'X', ' ', 'X'},
-            {'X', 'X', 'X'}
-        };
-        int[] current = {1, 1};
-        int[][] directions = {
-            {-1, -1}, {-1, 0}, {-1, 1},
-            {0, -1},           {0, 1},
-            {1, -1},  {1, 0},  {1, 1}
-        };
+  @Test
+  public void testNextMoves_surroundedByXs() {
+    char[][] board = {
+      {'X', 'X', 'X'},
+      {'X', ' ', 'X'},
+      {'X', 'X', 'X'}
+    };
+    int[] current = {1, 1};
+    int[][] directions = {
+      {-1, -1}, {-1, 0}, {-1, 1},
+      {0, -1},           {0, 1},
+      {1, -1},  {1, 0},  {1, 1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = Collections.emptySet();
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = Collections.emptySet();
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_allDirectionsAvailable() {
-        char[][] board = {
-            {' ', ' ', ' '},
-            {' ', ' ', ' '},
-            {' ', ' ', ' '}
-        };
-        int[] current = {1, 1};
-        int[][] directions = {
-            {-1, -1}, {-1, 0}, {-1, 1},
-            {0, -1},           {0, 1},
-            {1, -1},  {1, 0},  {1, 1}
-        };
+  @Test
+  public void testNextMoves_allDirectionsAvailable() {
+    char[][] board = {
+      {' ', ' ', ' '},
+      {' ', ' ', ' '},
+      {' ', ' ', ' '}
+    };
+    int[] current = {1, 1};
+    int[][] directions = {
+      {-1, -1}, {-1, 0}, {-1, 1},
+      {0, -1},           {0, 1},
+      {1, -1},  {1, 0},  {1, 1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Arrays.asList(
-            "0,0", "0,1", "0,2",
-            "1,0",       "1,2",
-            "2,0", "2,1", "2,2"
-        ));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Arrays.asList(
+      "0,0", "0,1", "0,2",
+      "1,0",       "1,2",
+      "2,0", "2,1", "2,2"
+    ));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_topLeftCorner() {
-        char[][] board = {
-            {' ', ' ', ' '},
-            {' ', ' ', ' '},
-            {' ', ' ', ' '}
-        };
-        int[] current = {0, 0};
-        int[][] directions = {
-            {0, 1},
-            {1, 0},
-            {1, 1}
-        };
+  @Test
+  public void testNextMoves_topLeftCorner() {
+    char[][] board = {
+      {' ', ' ', ' '},
+      {' ', ' ', ' '},
+      {' ', ' ', ' '}
+    };
+    int[] current = {0, 0};
+    int[][] directions = {
+      {0, 1},
+      {1, 0},
+      {1, 1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Arrays.asList("0,1", "1,0", "1,1"));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Arrays.asList("0,1", "1,0", "1,1"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    public void testNextMoves_singleDirection() {
-        char[][] board = {
-            {' ', ' ', ' '},
-            {' ', ' ', ' '},
-            {' ', ' ', ' '}
-        };
-        int[] current = {1, 1};
-        int[][] directions = {
-            {-1, -1}
-        };
+  @Test
+  public void testNextMoves_singleDirection() {
+    char[][] board = {
+      {' ', ' ', ' '},
+      {' ', ' ', ' '},
+      {' ', ' ', ' '}
+    };
+    int[] current = {1, 1};
+    int[][] directions = {
+      {-1, -1}
+    };
 
-        List<int[]> result = Practice.nextMoves(board, current, directions);
-        Set<String> actual = toSet(result);
-        Set<String> expected = new HashSet<>(Collections.singletonList("0,0"));
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    Set<String> expected = new HashSet<>(Collections.singletonList("0,0"));
 
-        assertEquals(expected, actual);
-    }
+    assertEquals(expected, actual);
+  }
+
+  // --- Additional tests for nextMoves ---
+
+  @Test
+  public void testNextMoves_NoDirections() {
+    char[][] board = {
+      {' ', ' '},
+      {' ', ' '}
+    };
+    int[] current = {0, 0};
+    int[][] directions = {};
+    // No directions means no moves.
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  public void testNextMoves_AllBlockedByX() {
+    char[][] board = {
+      {'X', 'X', 'X'},
+      {'X', ' ', 'X'},
+      {'X', 'X', 'X'}
+    };
+    int[] current = {1, 1};
+    int[][] directions = {
+      {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+    };
+    // All four adjacent cells are 'X'.
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  public void testNextMoves_DiagonalOnly() {
+    char[][] board = {
+      {' ', 'X'},
+      {'X', ' '}
+    };
+    int[] current = {0, 0};
+    int[][] directions = {
+      {1, 1}  // only the diagonal down-right is allowed
+    };
+    // That diagonal is open.
+    List<int[]> result = Practice.nextMoves(board, current, directions);
+    Set<String> actual = toSet(result);
+    assertEquals(Collections.singleton("1,1"), actual);
+  }
 }
