@@ -47,7 +47,6 @@ public class Practice {
    * @return a sorted list of all reachable vertex values by 
    */
   public static List<Integer> sortedReachable(Vertex<Integer> starting) {
-    // Unimplemented: perform a depth-first search and sort the collected values.
     return null;
   }
 
@@ -110,5 +109,76 @@ public class Practice {
    */
   public static boolean hasExtendedConnectionAtCompany(Professional person, String companyName) {
     return false;
+  }
+
+  /**
+   * Returns a list of possible next moves starting from a given position.
+   * 
+   * Starting from current, which is a [row, column] location, a player can move 
+   * by one according to the directions provided.
+   * 
+   * The directions are given as a 2D array, where each inner array is a [row, column]
+   * pair that describes a move. For example, if given the below array it would be possible
+   * to move to the right, up, down, or down/left diagonally.
+   * {
+   *  {0, 1},  // Right
+   *  {-1, 0}, // Up
+   *  {1, 0},  // Down
+   *  {1, -1}  // Down/left diagonal
+   * }
+   * 
+   * However, the player can not move off the edge of the board, or onto any 
+   * location that has an 'X' (capital X).
+   * 
+   * The possible moves are returned as a List of [row, column] pairs. The List
+   * can be in any order.
+   * 
+   * Example:
+   * 
+   * board: 
+   * {
+   *  {' ', ' ', 'X'},
+   *  {'X', ' ', ' '},
+   *  {' ', ' ', ' '}
+   * }
+   * 
+   * current:
+   * {1, 2}
+   * 
+   * directions:
+   * {
+   *  {0, 1},  // Right
+   *  {-1, 0}, // Up
+   *  {1, 0},  // Down
+   *  {1, -1}  // Down/left diagonal
+   * }
+   * 
+   * expected output (order of list is unimportant):
+   * [{2, 2}, {2, 1}]
+   * 
+   * Explanation:
+   * The player starts at {1, 2}.
+   * The four directions the player might have to go are right, up, down, and down/left (based on the directions array).
+   * They cannot go right because that would go off the edge of the board.
+   * They cannot go up because there is an X.
+   * They can go down.
+   * They can go down/left.
+   * The resultant list has the two possible positions.
+   * 
+   * 
+   * You can assume the board is rectangular.
+   * You can assume valid input (no nulls, properly sized arrays, current is in-bounds,
+   * directions only move 1 square, any row/column pairs are arrays of length 2,
+   * directions are unique).
+   * 
+   * If there are no possible moves, the method returns an empty list.
+   * 
+   * @param board a rectangular array where 'X' represent an impassible location
+   * @param current the [row, column] starting position of the player
+   * @param directions an array of [row, column] possible directions
+   * @return an unsorted list of next moves
+   */
+  public static List<int[]> nextMoves(char[][] board, int[] current, int[][] directions) {
+    return null;
   }
 }
